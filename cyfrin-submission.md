@@ -256,3 +256,87 @@ An overview of the findings, including the number of vulnerabilities identified 
     require(msg.sender == authorizedContract, "Unauthorized call");
     ```
 
+### low-level findings
+
+#### 1. **FjordAuction.sol**
+- **Redundant Storage Writes**: Writing to storage multiple times within a single function can increase gas costs.
+  - **Improvement**: Cache values in memory and write to storage only once.
+  - **Example Fix**:
+    ```solidity
+    uint256 tempAmount = remainingAmount;
+    tempAmount -= bidAmount;
+    remainingAmount = tempAmount;
+    ```
+  - **Severity**: Low
+
+- **Use of SafeMath in Solidity 0.8+**: Since Solidity 0.8+ has built-in overflow protection, using `SafeMath` is unnecessary and can increase gas costs.
+  - **Improvement**: Remove `SafeMath` usage in favor of native arithmetic operations.
+  - **Example Fix**:
+    ```solidity
+    uint256 result = a + b;  // No need for SafeMath in Solidity 0.8+
+    ```
+  - **Severity**: Low
+
+#### 2. **FjordAuctionFactory.sol**
+- **Inefficient Event Emission**: Emitting events with unnecessary indexed parameters increases gas costs.
+  - **Improvement**: Index only essential parameters to reduce storage costs.
+  - **Example Fix**:
+    ```solidity
+    event AuctionCreated(address indexed auctionAddress);  // Avoid indexing non-essential parameters
+    ```
+  - **Severity**: Low
+
+- **Redundant Access Control Checks**: Performing access control checks multiple times within a function increases gas costs.
+  - **Improvement**: Consolidate access control checks to minimize redundant code execution.
+  - **Example Fix**:
+    ```solidity
+    require(msg.sender == owner, "Unauthorized");
+    ```
+  - **Severity**: Low
+
+#### 3. **FjordPoints.sol**
+- **Inefficient Loop Operations**: Loop operations, especially in functions with unbounded iterations, can be gas-intensive.
+  - **Improvement**: Optimize loops by using `unchecked` blocks for safe arithmetic, where applicable, and consider limiting loop iterations.
+  - **Example Fix**:
+    ```solidity
+    unchecked { for (uint256 i = 0; i < totalBids; i++) { ... } }
+    ```
+  - **Severity**: Low
+
+#### 4. **FjordStaking.sol**
+- **Redundant Calculations**: Repeated calculations within the same function increase gas costs.
+  - **Improvement**: Cache results of calculations in local variables.
+  - **Example Fix**:
+    ```solidity
+    uint256 rewards = calculateRewards();  // Cache the result instead of calling multiple times
+    ```
+  - **Severity**: Low
+
+- **Excessive Use of Structs**: Inefficient packing of struct variables can increase storage costs.
+  - **Improvement**: Reorder struct variables to pack them tightly and minimize storage usage.
+  - **Example Fix**:
+    ```solidity
+    struct Data {
+        uint128 smallData1;
+        uint128 smallData2;
+        uint256 largeData;
+    }
+    ```
+  - **Severity**: Low
+
+#### 5. **FjordToken.sol**
+- **Redundant Initialization**: Performing unnecessary initializations or multiple state updates increases deployment and execution costs.
+  - **Improvement**: Combine initialization steps where possible.
+  - **Example Fix**:
+    ```solidity
+    function initialize() external {
+        _mint(msg.sender, 100_000_000 ether);
+        // Other initialization logic
+    }
+    ```
+  - **Severity**: Low
+
+#### 6. **IFjordPoints.sol**
+- **Interface Efficiency**: Although interfaces are lightweight, ensure that implementing contracts do not introduce unnecessary complexity or redundant storage operations.
+  - **Improvement**: Keep implementations simple and efficient to minimize gas usage.
+  - **Severity**: Low
