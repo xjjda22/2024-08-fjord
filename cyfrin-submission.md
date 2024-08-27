@@ -256,6 +256,18 @@ An overview of the findings, including the number of vulnerabilities identified 
     require(msg.sender == authorizedContract, "Unauthorized call");
     ```
 
+#### 7. **FjordAuction.sol**
+- **Lack of Reentrancy Protection**: Functions that involve external calls are not protected against reentrancy attacks, posing a risk of unauthorized reentry.
+  - **Improvement**: Implement `ReentrancyGuard` to prevent reentrancy attacks.
+  - **Example Fix**:
+    ```solidity
+    function bid() external nonReentrant {
+        // Bidding logic
+    }
+    ```
+  - **Severity**: High
+
+
 ### low-level findings
 
 #### 1. **FjordAuction.sol**
@@ -340,3 +352,26 @@ An overview of the findings, including the number of vulnerabilities identified 
 - **Interface Efficiency**: Although interfaces are lightweight, ensure that implementing contracts do not introduce unnecessary complexity or redundant storage operations.
   - **Improvement**: Keep implementations simple and efficient to minimize gas usage.
   - **Severity**: Low
+
+#### 7. **FjordAuctionFactory.sol**
+- **Unbounded Loops**: The contract contains loops that may iterate over dynamic data, leading to potential out-of-gas errors.
+  - **Improvement**: Implement mechanisms to limit loop iterations or split operations into multiple transactions.
+  - **Severity**: Medium
+
+#### 8. **FjordPoints.sol**
+- **Missing Input Validation**: Lack of input validation in critical functions could allow invalid or malicious inputs.
+  - **Improvement**: Use `require` statements to validate inputs such as token amounts or addresses.
+  - **Example Fix**:
+    ```solidity
+    require(amount > 0, "Invalid amount");
+    ```
+  - **Severity**: High
+
+#### 9. **FjordStaking.sol**
+- **Inefficient Storage Access**: Repeated storage access increases gas costs, especially when reading the same variable multiple times.
+  - **Improvement**: Cache storage values in memory before performing operations.
+  - **Example Fix**:
+    ```solidity
+    uint256 cachedBalance = balances[msg.sender];
+    ```
+  - **Severity**: Medium
